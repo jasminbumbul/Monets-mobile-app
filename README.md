@@ -15,6 +15,8 @@ To run the app on a real device, change root url in Constants.dart file to your 
 
 Withing the folder where the project is located, enter the following commands on the CMD:<br/>
 -flutter pub get
+
+
 -flutter run
 Note: Make sure you have an emulator running
 
