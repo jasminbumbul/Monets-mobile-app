@@ -18,6 +18,8 @@ Withing the folder where the project is located, enter the following commands on
 
 
 -flutter run
+
+
 Note: Make sure you have an emulator running
 
 ## API LAUNCHING
