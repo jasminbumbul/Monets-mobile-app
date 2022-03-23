@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:monets/constants/color_pallete.dart';
 import 'package:monets/screens/password_reset_screen.dart';
@@ -22,6 +24,52 @@ class _PasswordResetCodeState extends State<PasswordResetCode> {
       borderRadius: BorderRadius.circular(15.0),
     );
   }
+
+  static const countdownDuration = Duration(seconds: 10);
+  Duration duration = const Duration();
+
+  Timer? timer;
+
+  bool countDown = true;
+
+  @override
+  void initState() {
+    super.initState();
+    reset();
+  }
+
+  void reset() {
+    if (countDown) {
+      setState(() => duration = countdownDuration);
+    } else {
+      setState(() => duration = const Duration());
+    }
+  }
+
+  void startTimer() {
+    timer = Timer.periodic(const Duration(seconds: 1), (_) => addTime());
+  }
+
+  void addTime() {
+    final addSeconds = countDown ? -1 : 1;
+    setState(() {
+      final seconds = duration.inSeconds + addSeconds;
+      if (seconds < 0) {
+        timer?.cancel();
+        reset();
+      } else {
+        duration = Duration(seconds: seconds);
+      }
+    });
+  }
+
+  void stopTimer({bool resets = true}) {
+    if (resets) {
+      reset();
+    }
+    setState(() => timer?.cancel());
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -114,7 +162,7 @@ class _PasswordResetCodeState extends State<PasswordResetCode> {
                           HttpService.posaljiKodNaVerifikaciju(widget.email, codeController.text).then((value) =>
                               ScaffoldMessenger.of(context)
                                   .showSnackBar(const SnackBar(
-                                backgroundColor: ColorPallete.yellow,
+                                backgroundColor: Colors.green,
                                 duration: Duration(milliseconds: 2000),
                                 content:
                                 Text("Kod prihvaćen",style: TextStyle(color:ColorPallete.purple),),
@@ -145,17 +193,67 @@ class _PasswordResetCodeState extends State<PasswordResetCode> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 10.0),
-              const Text(
-                "Ponovo pošalji kod",
-                style: TextStyle(
-                    decoration: TextDecoration.underline,
-                    decorationColor: Colors.black,
-                    color: ColorPallete.purple,
-                    fontFamily: "Avenir-Medium",
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: -1.0,
-                    fontSize: 16.0),
-                textAlign: TextAlign.center,
+              duration.inSeconds != 10
+                  ? Text(
+                "Sačekajte ${duration.inSeconds} sekundi prije slanja novog mail-a",
+                style: const TextStyle(
+                  fontFamily: 'Avenir-Medium',
+                  fontSize: 15.0,
+                  fontWeight: FontWeight.bold,
+                ),
+              )
+                  : Container(),
+              duration.inSeconds != 10
+                  ? ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  primary: ColorPallete.darkGrey,
+                  onPrimary: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18.0),
+                  ),
+                ),
+                onPressed: () async {
+                },
+                child: const Text(
+                  "Pošalji opet",
+                  style: TextStyle(
+                    fontFamily: 'Avenir-Medium',
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              )
+                  : ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  primary: ColorPallete.purple,
+                  onPrimary: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18.0),
+                  ),
+                ),
+                onPressed: () async {
+                  startTimer();
+                  await HttpService.posaljiKodZaRestartPassworda(
+                      widget.email).then((value) => ScaffoldMessenger.of(context)
+                      .showSnackBar(const SnackBar(
+                    backgroundColor: ColorPallete.yellow,
+                    duration: Duration(milliseconds: 2000) ,
+                    content:
+                    Text("Verifikacijski kod poslan", style:TextStyle(color: ColorPallete.purple)),
+                  )));
+                },
+                child: const Text(
+                  "Ponovo pošalji kod",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      decoration: TextDecoration.underline,
+                      decorationColor: ColorPallete.purple,
+                      color: Colors.white,
+                      fontFamily: "Avenir-Medium",
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: -1.0,
+                      fontSize: 16.0),
+                ),
               ),
               const SizedBox(height: 10.0),
             ],

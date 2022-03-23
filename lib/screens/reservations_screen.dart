@@ -139,7 +139,7 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
               padding:
                   const EdgeInsets.symmetric(horizontal: 30.0, vertical: 15.0),
               child: SizedBox(
-                height: MediaQuery.of(context).size.height/1.6,
+                height: MediaQuery.of(context).size.height / 1.6,
                 child: FutureBuilder<List<RezervacijaModel>>(
                   future: HttpService.getRezervacije(RezervacijaSearchModel(
                       null,
@@ -148,7 +148,8 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
                           : selectedIndex == 1
                               ? true
                               : false,
-                      HttpService.klijent.klijentId!,false)),
+                      HttpService.klijent.klijentId!,
+                      false)),
                   builder: (context, snapshot) {
                     if (snapshot.hasData) {
                       return ListView.builder(

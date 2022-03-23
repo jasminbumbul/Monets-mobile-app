@@ -4,7 +4,7 @@ part 'kategorija_model.g.dart';
 
 @JsonSerializable()
 class KategorijaModel{
-  final int? kategorijaId;
+  final int kategorijaId;
   final String? naziv, slika;
 
   KategorijaModel(this.kategorijaId, this.naziv, this.slika);

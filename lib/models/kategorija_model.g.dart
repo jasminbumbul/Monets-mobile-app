@@ -8,7 +8,7 @@ part of 'kategorija_model.dart';
 
 KategorijaModel _$KategorijaModelFromJson(Map<String, dynamic> json) =>
     KategorijaModel(
-      json['kategorijaId'] as int?,
+      json['kategorijaId'] as int,
       json['naziv'] as String?,
       json['slika'] as String?,
     );

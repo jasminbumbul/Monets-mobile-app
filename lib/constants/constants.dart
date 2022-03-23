@@ -1,6 +1,6 @@
 class Constants {
   static const String appName = "Monets";
-  static const String serverRoute = "http://10.0.2.2:5000/api";
+  static const String serverRoute = "http://10.0.2.2:5010/api";
   static const String klijentLoginRoute = "/Klijent/Login";
   static const String klijentRegisterRoute = "/Klijent";
   static const String gradoviRoute = "/Grad";
@@ -20,4 +20,9 @@ class Constants {
   static const String ukloniJeloIzRezervacije = "/UkloniJeloIzRezervacije";
   static const String getKolicinuZaJeloRezervaciju = "/GetKolicinuZaJeloRezervaciju";
   static const String stolRoute = "/Stol";
+  static const String rejtingRoute = "/Rejting";
+  static const String transakcijaRoute = "/Transakcija";
+  static const String ukupanRejtingRoute = "/GetUkupanRejtingZaJelo";
+  static const String getPreporucenoJeloRoute = "/getPreporucenoJelo";
+  static const String sistemPreporukeRoute = "/Preporuka";
 }

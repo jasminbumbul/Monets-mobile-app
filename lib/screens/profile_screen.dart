@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:monets/constants/color_pallete.dart';
+import 'package:monets/screens/change_password_screen.dart';
 import 'package:monets/screens/login_screen.dart';
 import 'package:monets/screens/profile_edit_screen.dart';
 import 'package:monets/services/http_service.dart';
@@ -90,15 +91,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           const SizedBox(height: 20.0),
           const ProfileItem(
-              icon: Icon(Icons.attach_money, color: Colors.white),
-              itemName: "Payment method",
-              itemPaddingColor: Colors.blueAccent,
-              redirectScreen: LoginScreen()),
-          const ProfileItem(
-              icon: Icon(Icons.settings, color: Colors.white),
-              itemName: "Settings",
+              icon: Icon(Icons.lock, color: Colors.white),
+              itemName: "Privacy settings",
               itemPaddingColor: Colors.black,
-              redirectScreen: LoginScreen()),
+              redirectScreen: ChangePassword()),
           const ProfileItem(
               icon: Icon(Icons.logout, color: Colors.black),
               itemName: "Logout",

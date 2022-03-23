@@ -11,29 +11,36 @@ class FoodWidget extends StatefulWidget {
   final Function(int jeloId)? notifyParent;
   late bool isFavouriteScreen = false;
   final JeloModel jelo;
-  late int? kolicina;
-  final int? rezervacija;
+  late int kolicina;
+  final int rezervacija;
 
-  FoodWidget({Key? key, required this.jelo, required this.isFavouriteScreen, this.notifyParent, this.kolicina, this.rezervacija}) : super(key: key);
+  FoodWidget(
+      {Key? key,
+      required this.jelo,
+      required this.isFavouriteScreen,
+      this.notifyParent,
+      this.kolicina = 1,
+      this.rezervacija = 0})
+      : super(key: key);
 
   @override
   State<FoodWidget> createState() => _FoodWidgetState();
 }
 
 class _FoodWidgetState extends State<FoodWidget> {
-
   @override
   void initState() {
-    print(widget.rezervacija);
-    if(widget.rezervacija!=0 && widget.jelo.jeloId!=0){
+    if (widget.rezervacija != 0 && widget.jelo.jeloId != 0) {
       getKolicinu();
     }
   }
 
-  getKolicinu()async{
-    JeloRezervacijaModel jeloRezervacijaModel = await HttpService.getKolicinuZaJeloRezervaciju(widget.jelo.jeloId!, widget.rezervacija!);
+  getKolicinu() async {
+    JeloRezervacijaModel jeloRezervacijaModel =
+        await HttpService.getKolicinuZaJeloRezervaciju(
+            widget.jelo.jeloId!, widget.rezervacija);
     setState(() {
-      widget.kolicina=jeloRezervacijaModel.kolicina!;
+      widget.kolicina = jeloRezervacijaModel.kolicina!;
     });
   }
 
@@ -42,7 +49,8 @@ class _FoodWidgetState extends State<FoodWidget> {
     return Row(
       children: [
         Padding(
-          padding: const EdgeInsets.only(bottom: 50.0, left: 5.0, right: 5.0),
+          padding: const EdgeInsets.only(
+              top: 10.0, bottom: 50.0, left: 5.0, right: 5.0),
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10.0),
@@ -56,7 +64,7 @@ class _FoodWidgetState extends State<FoodWidget> {
               ],
             ),
             width: MediaQuery.of(context).size.width - 70.0,
-            height: 100.0,
+            height: 120.0,
             child: Row(
               children: [
                 getFoodImage(widget.jelo),
@@ -64,6 +72,7 @@ class _FoodWidgetState extends State<FoodWidget> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Padding(
                           padding: const EdgeInsets.all(10.0),
@@ -76,62 +85,61 @@ class _FoodWidgetState extends State<FoodWidget> {
                                 fontSize: 17.0),
                           ),
                         ),
-                        widget.isFavouriteScreen ==true ? (GestureDetector(
-                          onTap: () async {
-                            widget.notifyParent!(widget.jelo.jeloId!);
-                            ScaffoldMessenger.of(context)
-                                .showSnackBar(const SnackBar(
-                              backgroundColor: ColorPallete.purple,
-                              duration: Duration(milliseconds: 1000) ,
-                              content:
-                              Text("Jelo uklonjeno iz favorita"),
-                            ));
-                          },
-                          child: SizedBox(
-                            width: MediaQuery.of(context).size.width-250.0,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: const [
-                                Icon(Icons.favorite, color: ColorPallete.purple),
-                              ],
-                            ),
-                          ),
-                        )):Container(),
-                       widget.kolicina != null
+                        widget.isFavouriteScreen == true
+                            ? (GestureDetector(
+                                onTap: () async {
+                                  widget.notifyParent!(widget.jelo.jeloId!);
+                                  ScaffoldMessenger.of(context)
+                                      .showSnackBar(const SnackBar(
+                                    backgroundColor: ColorPallete.purple,
+                                    duration: Duration(milliseconds: 1000),
+                                    content: Text("Jelo uklonjeno iz favorita"),
+                                  ));
+                                },
+                                child: Icon(Icons.favorite,
+                                    color: ColorPallete.purple),
+                              ))
+                            : Container(),
+                        widget.kolicina != 0
                             ? GestureDetector(
-                            onTap: () async {
-                              try {
-                                await widget.notifyParent!(widget.jelo.jeloId!);
-                                ScaffoldMessenger.of(context)
-                                    .showSnackBar(const SnackBar(
-                                  backgroundColor: ColorPallete.yellow,
-                                  duration: Duration(milliseconds: 1000),
-                                  content:
-                                  Text("Jelo uklonjeno iz rezervacije", style: TextStyle(color:Colors.black),),
-                                ));
-                              } catch (exception) {
-                                ScaffoldMessenger.of(context)
-                                    .showSnackBar(SnackBar(
-                                  backgroundColor: Colors.red,
-                                  content: Text(exception.toString().substring(
-                                      22, exception.toString().length - 3)),
-                                ));
-                              }
-                            },
-                            child: SizedBox(
-                              width: MediaQuery.of(context).size.width-250.0,
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: const [
-                                  Icon(Icons.restore_from_trash_rounded, color: Colors.red),
-                                ],
-                              ),
-                            ))
+                                onTap: () async {
+                                  try {
+                                    await widget
+                                        .notifyParent!(widget.jelo.jeloId!);
+                                    ScaffoldMessenger.of(context)
+                                        .showSnackBar(const SnackBar(
+                                      backgroundColor: ColorPallete.yellow,
+                                      duration:
+                                          Duration(milliseconds: 1000),
+                                      content: Text(
+                                        "Jelo uklonjeno iz rezervacije",
+                                        style:
+                                            TextStyle(color: Colors.black),
+                                      ),
+                                    ));
+                                  } catch (exception) {
+                                    ScaffoldMessenger.of(context)
+                                        .showSnackBar(SnackBar(
+                                      backgroundColor: Colors.red,
+                                      content: Text(exception
+                                          .toString()
+                                          .substring(
+                                              22,
+                                              exception.toString().length -
+                                                  3)),
+                                    ));
+                                  }
+                                },
+                                child: const SizedBox(
+                                  child: Icon(
+                                      Icons.restore_from_trash_rounded,
+                                      color: Colors.red),
+                                ))
                             : Container(),
                       ],
                     ),
                     Container(
-                      width: MediaQuery.of(context).size.width/2,
+                      width: MediaQuery.of(context).size.width / 2,
                       child: Padding(
                         padding: const EdgeInsets.only(left: 10.0),
                         child: Text(
@@ -144,34 +152,36 @@ class _FoodWidgetState extends State<FoodWidget> {
                       ),
                     ),
                     Container(
-                      width: MediaQuery.of(context).size.width/1.9,
+                      width: MediaQuery.of(context).size.width / 1.9,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          widget.kolicina!=null ?Container(
-                            alignment: Alignment.centerLeft,
-                            child: Padding(
-                              padding: const EdgeInsets.only(left:10.0),
-                              child: Text(
-                                (widget.kolicina.toString()+"X"),
-                                style: const TextStyle(
-                                    color: ColorPallete.purple,
-                                    fontWeight: FontWeight.bold,
-                                    fontFamily: "Avenir-Medium",
-                                    fontSize: 15.0),
-                              ),
-                            ),
-                          ):Container(),
+                          widget.kolicina != 0
+                              ? Container(
+                                  alignment: Alignment.centerLeft,
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(left: 10.0),
+                                    child: Text(
+                                      (widget.kolicina.toString() + "X"),
+                                      style: const TextStyle(
+                                          color: ColorPallete.purple,
+                                          fontWeight: FontWeight.bold,
+                                          fontFamily: "Avenir-Medium",
+                                          fontSize: 15.0),
+                                    ),
+                                  ),
+                                )
+                              : Container(),
                           Container(
                             alignment: Alignment.centerRight,
                             child: Text(
-                                (widget.jelo.cijena!.toStringAsFixed(0) + " KM"),
-                                style: const TextStyle(
-                                    color: ColorPallete.purple,
-                                    fontWeight: FontWeight.bold,
-                                    fontFamily: "Avenir-Medium",
-                                    fontSize: 15.0),
-                              ),
+                              (widget.jelo.cijena!.toStringAsFixed(0) + " KM"),
+                              style: const TextStyle(
+                                  color: ColorPallete.purple,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: "Avenir-Medium",
+                                  fontSize: 15.0),
+                            ),
                           ),
                         ],
                       ),
@@ -191,6 +201,9 @@ Widget getFoodImage(JeloModel jelo) {
   if (jelo.slika == null) {
     return Image.asset("assets/images/placeholder_food.png");
   } else {
-    return Image.memory(base64Decode(jelo.slika!),width: 100.0,);
+    return Image.memory(
+      base64Decode(jelo.slika!),
+      width: 100.0,
+    );
   }
 }

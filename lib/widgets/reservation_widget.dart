@@ -20,7 +20,7 @@ class _OrderWidgetState extends State<OrderWidget> {
     return Row(
       children: [
         Padding(
-          padding: const EdgeInsets.only(bottom: 50.0, left: 5.0, right: 5.0),
+          padding: const EdgeInsets.only(bottom: 50.0, left: 5.0, right: 5.0, top:10.0),
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10.0),

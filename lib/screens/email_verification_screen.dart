@@ -105,7 +105,8 @@ class _EmailVerificationState extends State<EmailVerification> {
                         borderRadius: BorderRadius.circular(18.0),
                       ),
                     ),
-                    onPressed: () async {},
+                    onPressed: () async {
+                    },
                     child: const Text(
                       "Pošalji opet",
                       style: TextStyle(

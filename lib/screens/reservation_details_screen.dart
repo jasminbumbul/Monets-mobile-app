@@ -11,7 +11,10 @@ import 'package:monets/services/http_service.dart';
 import 'package:monets/widgets/food_widget.dart';
 
 import '../models/rezervacija_update_model.dart';
+import '../models/transakcija_model.dart';
 import 'food_details_screen.dart';
+import 'home_screen.dart';
+import 'main_screen.dart';
 
 class ReservationDetailsScreen extends StatefulWidget {
   final RezervacijaModel rezervacija;
@@ -210,50 +213,54 @@ class _ReservationDetailsScreenState extends State<ReservationDetailsScreen> {
                   ),
                 ),
                 onPressed: () async {
-                  //TODO: mora imati barem jedno jelo u rezervaciji
-                  // if () {
                   try {
-                    //Prije zakljucavanja rezervacije, potrebno je izvrsiti placanje
                     Navigator.of(context).push(
                       MaterialPageRoute (
                         builder: (BuildContext context)=> Payment(
                           narudzbe : narudzbe,
                           onFinish: (number) async {
                             // payment done
+                            await HttpService.updateRezervaciju(
+                                widget.rezervacija.rezervacijaId!,
+                                RezervacijaUpdateModel(
+                                    widget.rezervacija.pocetakRezervacije,
+                                    widget.rezervacija.krajRezervacije,
+                                    true,
+                                    widget.rezervacija.potvrdjena,
+                                    true,
+                                    false,
+                                    widget.rezervacija.poruka,
+                                    widget.rezervacija.stolId))
+                                .then((value) => {
+                              updateRezervaciju(value),
+                              ScaffoldMessenger.of(context)
+                                  .showSnackBar(const SnackBar(
+                                backgroundColor: ColorPallete.yellow,
+                                content: Text("Rezervacija završena"),
+                              ))
+                            }).then((value) =>HttpService.kreirajTransakciju(TransakcijaModel(0,widget.rezervacija.rezervacijaId!, HttpService.klijent.klijentId!, "")))
+                                .then((value)=>{
                             ScaffoldMessenger.of(context)
                                 .showSnackBar(const SnackBar(
                               backgroundColor: Colors.green,
                               duration: Duration(milliseconds: 1000),
                               content:
                               Text("Plaćanje uspješno"),
-                            ));
+                            ))
+                            }).then((value) =>   Navigator.of(context).push(
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        MainScreen())));
+                            setState(() {
+                            });
                           },
                         ),
                       ),
                     );
-                    // await HttpService.updateRezervaciju(
-                    //     widget.rezervacija.rezervacijaId!,
-                    //     RezervacijaUpdateModel(
-                    //         widget.rezervacija.pocetakRezervacije,
-                    //         widget.rezervacija.krajRezervacije,
-                    //         widget.rezervacija.placena,
-                    //         widget.rezervacija.potvrdjena,
-                    //         true,
-                    //         widget.rezervacija.poruka,
-                    //         widget.rezervacija.stolId))
-                    //     .then((value) => {
-                    //   updateRezervaciju(value),
-                    //   ScaffoldMessenger.of(context)
-                    //       .showSnackBar(const SnackBar(
-                    //     backgroundColor: ColorPallete.yellow,
-                    //     content: Text("Rezervacija završena"),
-                    //   ))
-                    // });
                   } catch (exception) {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                       backgroundColor: Colors.red,
-                      content: Text(exception.toString().substring(
-                          22, exception.toString().length - 3)),
+                      content: Text("Greška"),
                     ));
                   }
                 },
@@ -284,9 +291,10 @@ class _ReservationDetailsScreenState extends State<ReservationDetailsScreen> {
                         RezervacijaUpdateModel(
                             widget.rezervacija.pocetakRezervacije,
                             widget.rezervacija.krajRezervacije,
-                            widget.rezervacija.placena,
-                            widget.rezervacija.potvrdjena,
+                            false,
                             true,
+                            true,
+                            false,
                             widget.rezervacija.poruka,
                             widget.rezervacija.stolId))
                         .then((value) => {

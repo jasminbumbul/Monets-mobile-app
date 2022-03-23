@@ -18,6 +18,7 @@ RezervacijaUpdateModel _$RezervacijaUpdateModelFromJson(
       json['placena'] as bool?,
       json['potvrdjena'] as bool?,
       json['potvrdjenaKlijent'] as bool?,
+      json['status'] as bool?,
       json['poruka'] as String?,
       json['stolId'] as int?,
     )..klijentId = json['klijentId'] as int?;
@@ -30,6 +31,7 @@ Map<String, dynamic> _$RezervacijaUpdateModelToJson(
       'placena': instance.placena,
       'potvrdjena': instance.potvrdjena,
       'potvrdjenaKlijent': instance.potvrdjenaKlijent,
+      'status': instance.status,
       'poruka': instance.poruka,
       'stolId': instance.stolId,
       'klijentId': instance.klijentId,

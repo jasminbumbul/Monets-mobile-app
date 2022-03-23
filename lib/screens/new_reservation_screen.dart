@@ -76,7 +76,6 @@ class _NewReservationState extends State<NewReservation> {
     selectedDate = DateTime.now();
     selectedEndTimeIndex = -1;
     selectedStartTimeIndex = -1;
-
     odabraniStol = stolovi[0];
     getStolove();
   }
@@ -84,7 +83,7 @@ class _NewReservationState extends State<NewReservation> {
   void getStolove() async {
     var stoloviList = await HttpService.getStolove();
     setState(() {
-      stolovi = stoloviList as List<StolModel>;
+      stolovi += stoloviList as List<StolModel>;
       odabraniStol = stolovi[0];
     });
   }
@@ -286,10 +285,12 @@ class _NewReservationState extends State<NewReservation> {
                             ),
                             onChanged: (StolModel? newValue) {
                               setState(() {
+                                if(newValue?.stolId != 0){
                                 odabraniStol = newValue!;
                                 selectedEndTimeIndex = -1;
                                 selectedStartTimeIndex = -1;
                                 showStartTime = true;
+                                }
                               });
                             },
                             items: stolovi.map((StolModel stol) {

@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:monets/constants/constants.dart';
 import 'package:monets/models/favorit_model.dart';
@@ -14,12 +15,16 @@ import 'package:monets/models/klijent_insert_model.dart';
 import 'package:monets/models/klijent_model.dart';
 import 'package:monets/models/login_model.dart';
 import 'package:monets/models/password_reset_model.dart';
+import 'package:monets/models/rejting_upsert_model.dart';
 import 'package:monets/models/rezervacija_insert_model.dart';
 import 'package:monets/models/rezervacija_model.dart';
 import 'package:monets/models/rezervacija_search_model.dart';
 import 'package:monets/models/rezervacija_update_model.dart';
 import 'package:monets/models/stol_model.dart';
 import 'package:monets/models/vrijeme_model.dart';
+
+import '../models/rejting_model.dart';
+import '../models/transakcija_model.dart';
 
 class HttpService {
   static String authToken = "";
@@ -60,6 +65,7 @@ class HttpService {
         Constants.serverRoute + Constants.klijentRegisterRoute;
     final response = await http.post(Uri.parse(apiUrl),
         headers: {
+          "Authorization": authToken,
           "Accept": "application/json",
           "content-type": "application/json"
         },
@@ -78,6 +84,7 @@ class HttpService {
         Constants.serverRoute + Constants.klijentRegisterRoute+"/"+klijent.klijentId.toString();
     final response = await http.put(Uri.parse(apiUrl),
         headers: {
+          "Authorization": authToken,
           "Accept": "application/json",
           "content-type": "application/json"
         },
@@ -103,6 +110,7 @@ class HttpService {
     final response = await http.get(
       Uri.parse(apiUrl),
       headers: {
+        "Authorization": authToken,
         "Accept": "application/json",
         "content-type": "application/json"
       },
@@ -126,8 +134,9 @@ class HttpService {
   }
 
   static Future<List<JeloModel>> getPopularnaJela() async {
+    int preporucenoJeloId = await getPreporucenoJelo();
     final response =
-        await http.get(Uri.parse(Constants.serverRoute + Constants.jelaRoute),headers: {"Authorization": authToken});
+        await http.get(Uri.parse(Constants.serverRoute + Constants.sistemPreporukeRoute+"/"+preporucenoJeloId.toString()),headers: {"Authorization": authToken});
     if (response.statusCode == 200) {
       return compute(getPopularnoJelo, response.body);
     } else {
@@ -142,6 +151,32 @@ class HttpService {
           .toList();
     } else {
       return [];
+    }
+  }
+
+  static Future<List<JeloModel>> pretragaJela(String query, int kategorijaId) async {
+    String apiQuery = "";
+    if(query.isNotEmpty){
+      apiQuery+="?naziv="+query;
+    }
+    if(apiQuery.isEmpty){
+      apiQuery+="?kategorijaId="+kategorijaId.toString();
+    }
+    else{
+      apiQuery+="&kategorijaId="+kategorijaId.toString();
+    }
+
+    print(Uri.parse(Constants.serverRoute + Constants.jelaRoute +apiQuery));
+
+    final response =
+    await http.get(Uri.parse(Constants.serverRoute + Constants.jelaRoute +apiQuery),headers: {"Authorization": authToken});
+    if (response.statusCode == 200) {
+      print(response.body);
+      return (jsonDecode(response.body) as List)
+          .map((e) => JeloModel.fromJson(e))
+          .toList();
+    } else {
+      throw Exception('Something went wrong...');
     }
   }
 
@@ -169,7 +204,7 @@ class HttpService {
       RezervacijaSearchModel searchRequest) async {
 
     var statusQuery = searchRequest.status==true?"?Status=true":searchRequest.status==false?"?Status=false":"";
-    var klijentQuery = searchRequest.klijentId!=0?"KlijentId="+searchRequest.klijentId.toString():"";
+    var klijentQuery = searchRequest.klijentId!=0?"&KlijentId="+searchRequest.klijentId.toString():"&KlijentId="+klijent.klijentId.toString();
 
     if(statusQuery!="" && searchRequest.klijentId!=0){
       statusQuery+="&";
@@ -188,7 +223,7 @@ class HttpService {
     }
 
     var url = Constants.serverRoute + Constants.rezervacijeRoute.toString()+statusKlijentQuery;
-
+print(url);
     final response = await http.get(
         Uri.parse(url),
         headers: {
@@ -300,6 +335,7 @@ class HttpService {
   static void posaljiKonfirmacijskiMail(int klijentId) async {
     final response =
     await http.post(Uri.parse(Constants.serverRoute + Constants.posaljiKonfirmacijskiMail+"?klijentId="+klijentId.toString()), headers: {
+      "Authorization": authToken,
       "Accept": "application/json",
       "content-type": "application/json"
     });
@@ -308,9 +344,23 @@ class HttpService {
     }
   }
 
+  static void dodajOcjenuZaJelo(double? ocjena, int? jeloId) async {
+    RejtingUpsertModel request = RejtingUpsertModel(ocjena, jeloId, klijent.klijentId);
+    final response =
+    await http.post(Uri.parse(Constants.serverRoute + Constants.rejtingRoute), headers: {
+      "Authorization": authToken,
+      "Accept": "application/json",
+      "content-type": "application/json"
+    },body: jsonEncode(request));
+    if (response.statusCode != 200) {
+      throw Exception('Something went wrong...');
+    }
+  }
+
   static Future<dynamic> posaljiKodZaRestartPassworda(String email) async {
     final response =
     await http.post(Uri.parse(Constants.serverRoute + Constants.posaljiPasswordResetMail+"?email="+email), headers: {
+      "Authorization": authToken,
       "Accept": "application/json",
       "content-type": "application/json"
     });
@@ -322,6 +372,7 @@ class HttpService {
     var provjeraKodaModel = PasswordResetModel(email,"","",code);
     final response =
     await http.put(Uri.parse(Constants.serverRoute+Constants.klijentRegisterRoute + Constants.provjeraKoda), headers: {
+      "Authorization": authToken,
       "Accept": "application/json",
       "content-type": "application/json"
     },body: json.encode(provjeraKodaModel));
@@ -333,6 +384,7 @@ class HttpService {
   static Future<dynamic> updatePassword(PasswordResetModel passwordRequest) async {
     final response =
     await http.put(Uri.parse(Constants.serverRoute+Constants.klijentRegisterRoute + Constants.updatePassworda), headers: {
+      "Authorization": authToken,
       "Accept": "application/json",
       "content-type": "application/json"
     },body: json.encode(passwordRequest));
@@ -365,13 +417,15 @@ class HttpService {
     }
   }
   static Future<List<VrijemeModel>?>? getSlodobnaKrajnjaVremena(DateTime datum) async {
+    print(Constants.serverRoute+Constants.rezervacijeRoute+Constants.slobodnaKrajnjaVremenaRoute +"?date="+ datum.year.toString()+"-"+datum.month.toString()+"-"+datum.day.toString()+"T"+datum.hour.toString()+":"+datum.minute.toString()+":00" );
     final response =
-    await http.get(Uri.parse(Constants.serverRoute+Constants.rezervacijeRoute+Constants.slobodnaKrajnjaVremenaRoute +"?date="+datum.toString() ), headers: {
+    await http.get(Uri.parse(Constants.serverRoute+Constants.rezervacijeRoute+Constants.slobodnaKrajnjaVremenaRoute +"?date="+datum.toString().trim() ), headers: {
       "Authorization": authToken,
       "Accept": "application/json",
       "content-type": "application/json"
     });
     if (response.statusCode == 200) {
+      print(response.body);
       return (jsonDecode(response.body) as List)
           .map((e) => VrijemeModel.fromJson(e))
           .toList();
@@ -428,6 +482,7 @@ class HttpService {
         Constants.serverRoute + Constants.rezervacijeRoute;
     final response = await http.post(Uri.parse(apiUrl),
         headers: {
+          "Authorization": authToken,
           "Accept": "application/json",
           "content-type": "application/json"
         },
@@ -446,6 +501,7 @@ class HttpService {
         Constants.serverRoute + Constants.rezervacijeRoute + Constants.dodajJeloURezervaciju;
     final response = await http.post(Uri.parse(apiUrl),
         headers: {
+          "Authorization": authToken,
           "Accept": "application/json",
           "content-type": "application/json"
         },
@@ -464,6 +520,7 @@ class HttpService {
         Constants.serverRoute + Constants.rezervacijeRoute + Constants.ukloniJeloIzRezervacije;
     final response = await http.post(Uri.parse(apiUrl),
         headers: {
+          "Authorization": authToken,
           "Accept": "application/json",
           "content-type": "application/json"
         },
@@ -476,6 +533,24 @@ class HttpService {
     }
   }
 
+  static Future<dynamic> kreirajTransakciju(TransakcijaModel request) async {
+    const String apiUrl =
+        Constants.serverRoute + Constants.transakcijaRoute;
+    final response = await http.post(Uri.parse(apiUrl),
+        headers: {
+          "Authorization": authToken,
+          "Accept": "application/json",
+          "content-type": "application/json"
+        },
+        body: jsonEncode(request));
+    print("**********************************************************************"+response.statusCode.toString());
+    if (response.statusCode == 200) {
+      return true;
+    } else {
+      throw Exception("Greška prilikom kreiranja transakcije");
+    }
+  }
+
   static Future<JeloRezervacijaModel> getKolicinuZaJeloRezervaciju(
       int jeloId, int rezervacijaId) async {
      String apiUrl =
@@ -483,11 +558,50 @@ class HttpService {
     +"?jeloId="+jeloId.toString()+"&rezervacijaId="+rezervacijaId.toString();
     final response = await http.get(Uri.parse(apiUrl),
         headers: {
+          "Authorization": authToken,
           "Accept": "application/json",
           "content-type": "application/json"
         });
     if (response.statusCode == 200) {
       return JeloRezervacijaModel.fromJson(json.decode(response.body));
+    } else {
+      throw Exception(
+          response.statusCode.toString() + response.body.toString());
+    }
+  }
+
+  static Future<double> getUkupanRejtingZaJelo(int jeloId) async {
+    String apiUrl =
+        Constants.serverRoute + Constants.rejtingRoute + Constants.ukupanRejtingRoute
+            +"?jeloId="+jeloId.toString();
+    final response = await http.get(Uri.parse(apiUrl),
+        headers: {
+          "Authorization": authToken,
+          "Accept": "application/json",
+          "content-type": "application/json"
+        });
+    if (response.statusCode == 200) {
+      return json.decode(response.body) as double;
+    } else {
+      throw Exception(
+          response.statusCode.toString() + response.body.toString());
+    }
+  }
+
+  static Future<List<RejtingModel>> getKlijentovRejtingZaJelo(int jeloId) async {
+    String apiUrl =
+        Constants.serverRoute + Constants.rejtingRoute +"?jeloId="+jeloId.toString()+"&klijentId="+klijent.klijentId.toString();
+    print(apiUrl);
+    final response = await http.get(Uri.parse(apiUrl),
+        headers: {
+          "Authorization": authToken,
+          "Accept": "application/json",
+          "content-type": "application/json"
+        });
+    if (response.statusCode == 200) {
+      return (jsonDecode(response.body) as List)
+          .map((e) => RejtingModel.fromJson(e))
+          .toList();
     } else {
       throw Exception(
           response.statusCode.toString() + response.body.toString());
@@ -501,6 +615,7 @@ class HttpService {
         Constants.serverRoute + Constants.rezervacijeRoute+"/"+rezervacijaId.toString();
     final response = await http.put(Uri.parse(apiUrl),
         headers: {
+          "Authorization": authToken,
           "Accept": "application/json",
           "content-type": "application/json"
         },
@@ -516,9 +631,9 @@ class HttpService {
   static Future<List<JeloModel>> getJeloById(int jeloId) async {
     String apiUrl =
         Constants.serverRoute + Constants.jelaRoute+"?jeloId="+jeloId.toString();
-    print(apiUrl);
     final response = await http.get(Uri.parse(apiUrl),
         headers: {
+          "Authorization": authToken,
           "Accept": "application/json",
           "content-type": "application/json"
         });
@@ -526,6 +641,23 @@ class HttpService {
       return  (jsonDecode(response.body) as List)
           .map((e) => JeloModel.fromJson(e))
           .toList();
+    } else {
+      throw Exception(
+          response.statusCode.toString() + response.body.toString());
+    }
+  }
+
+  static Future<int> getPreporucenoJelo() async {
+    String apiUrl =
+        Constants.serverRoute + Constants.jelaRoute+Constants.getPreporucenoJeloRoute+"?klijentId="+klijent.klijentId.toString();
+    final response = await http.get(Uri.parse(apiUrl),
+        headers: {
+          "Authorization": authToken,
+          "Accept": "application/json",
+          "content-type": "application/json"
+        });
+    if (response.statusCode == 200) {
+      return  (jsonDecode(response.body));
     } else {
       throw Exception(
           response.statusCode.toString() + response.body.toString());

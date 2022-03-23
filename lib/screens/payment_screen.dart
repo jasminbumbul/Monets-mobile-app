@@ -1,5 +1,6 @@
 import 'dart:core';
 import 'package:flutter/material.dart';
+import 'package:monets/screens/main_screen.dart';
 import 'package:monets/services/payment_service.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'dart:io';
@@ -7,6 +8,7 @@ import 'dart:io';
 import '../models/jelo_model.dart';
 import '../models/jelo_rezervacija_model.dart';
 import '../services/http_service.dart';
+import 'home_screen.dart';
 
 class Payment extends StatefulWidget {
   final Function onFinish;
@@ -183,6 +185,16 @@ class PaymentState extends State<Payment> {
                     .then((id) {
                   widget.onFinish(id);
                 });
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                  backgroundColor: Colors.green,
+                  duration: Duration(milliseconds: 1000),
+                  content: Text(
+                      "Uspješna transakcija."),
+                ));
+                Navigator.of(context).push(
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            MainScreen()));
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                   backgroundColor: Colors.redAccent,

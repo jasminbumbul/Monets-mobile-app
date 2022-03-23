@@ -5,7 +5,7 @@ part 'rezervacija_update_model.g.dart';
 @JsonSerializable()
 class RezervacijaUpdateModel{
   final DateTime? pocetakRezervacije, krajRezervacije;
-  final bool? placena, potvrdjena, potvrdjenaKlijent;
+  final bool? placena, potvrdjena, potvrdjenaKlijent, status;
   final String? poruka;
   int? stolId, klijentId;
 
@@ -16,6 +16,7 @@ class RezervacijaUpdateModel{
       this.placena,
       this.potvrdjena,
       this.potvrdjenaKlijent,
+      this.status,
       this.poruka,
       this.stolId);
 

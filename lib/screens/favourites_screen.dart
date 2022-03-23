@@ -56,6 +56,8 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
                           return GestureDetector(
                             onTap: ()=> Navigator.of(context).push(MaterialPageRoute(builder: (context) => FoodDetails(jelo: elementAt))),
                             child: FoodWidget(
+                              rezervacija: 0,
+                              kolicina: 0,
                               jelo: elementAt,
                               isFavouriteScreen: true, notifyParent: refresh)
                             );

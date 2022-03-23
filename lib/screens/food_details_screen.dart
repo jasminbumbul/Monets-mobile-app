@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:monets/constants/color_pallete.dart';
 import 'package:monets/models/jelo_model.dart';
 import 'package:monets/models/jelo_rezervacija_model.dart';
@@ -19,6 +20,9 @@ class FoodDetails extends StatefulWidget {
 }
 
 class _FoodDetailsState extends State<FoodDetails> {
+  double? _ratingValue = 0;
+  double? ukupanRejting = 0;
+  double? klijentovRejting = 0;
   late bool isFavourite = false;
   int kolicina = 1;
 
@@ -34,14 +38,32 @@ class _FoodDetailsState extends State<FoodDetails> {
     checkIfFavourite();
     odabranaRezervacija = rezervacije[0];
     getRezervacije();
+    getUkupanRejtingZaJelo();
+    getKlijentovRejtingZaJelo();
   }
 
   void getRezervacije() async {
-    var rezervacijeList =
-        await HttpService.getRezervacije(RezervacijaSearchModel("", true, 0, true));
+    var rezervacijeList = await HttpService.getRezervacije(
+        RezervacijaSearchModel("", true, 0, true));
     setState(() {
       rezervacije += rezervacijeList as List<RezervacijaModel>;
       odabranaRezervacija = rezervacije[0];
+    });
+  }
+
+  getUkupanRejtingZaJelo() async {
+    var ukupanRejtingTemp =
+        await HttpService.getUkupanRejtingZaJelo(widget.jelo.jeloId!);
+    setState(() {
+      ukupanRejting = ukupanRejtingTemp;
+    });
+  }
+
+  getKlijentovRejtingZaJelo() async {
+    var klijentovRejtingTemp =
+        await HttpService.getKlijentovRejtingZaJelo(widget.jelo.jeloId!);
+    setState(() {
+      klijentovRejting = klijentovRejtingTemp.first.ocjena;
     });
   }
 
@@ -149,10 +171,7 @@ class _FoodDetailsState extends State<FoodDetails> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Image.memory(
-                            base64Decode(widget.jelo.slika!),
-                            width: 300.0,
-                          ),
+                         getFoodImage(widget.jelo),
                         ],
                       ),
                     ),
@@ -199,7 +218,7 @@ class _FoodDetailsState extends State<FoodDetails> {
               child: Container(
                 alignment: Alignment.center,
                 width: MediaQuery.of(context).size.width,
-                color: Color(0xffF2F2F3),
+                color: const Color(0xffF2F2F3),
                 height: 40.0,
                 child: const Text(
                   "Odaberite količinu",
@@ -217,7 +236,7 @@ class _FoodDetailsState extends State<FoodDetails> {
               children: [
                 GestureDetector(
                   onTap: () => {smanjiKolicinu()},
-                  child: Icon(
+                  child: const Icon(
                     Icons.remove_circle_outline,
                     size: 28.0,
                   ),
@@ -226,16 +245,16 @@ class _FoodDetailsState extends State<FoodDetails> {
                   padding: const EdgeInsets.symmetric(horizontal: 10.0),
                   child: Text(
                     kolicina.toString(),
-                    style: TextStyle(fontSize: 28.0),
+                    style: const TextStyle(fontSize: 28.0),
                   ),
                 ),
                 GestureDetector(
                   onTap: () => {povecajKolicinu()},
-                  child: Icon(Icons.add_circle_outline, size: 28.0),
+                  child: const Icon(Icons.add_circle_outline, size: 28.0),
                 ),
               ],
             ),
-            SizedBox(
+            const SizedBox(
               height: 50.0,
             ),
             Row(
@@ -251,14 +270,14 @@ class _FoodDetailsState extends State<FoodDetails> {
                         fontSize: 20.0),
                   ),
                 ),
-                Spacer(),
+                const Spacer(),
                 Padding(
                   padding: const EdgeInsets.only(right: 30.0),
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       primary: ColorPallete.yellow,
                       onPrimary: ColorPallete.purple,
-                      minimumSize: Size(200, 50),
+                      minimumSize: const Size(200, 50),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(18.0)),
                     ),
@@ -267,21 +286,29 @@ class _FoodDetailsState extends State<FoodDetails> {
                           ? setState(() {
                               widget.dropdownShown = true;
                             })
-                          : await HttpService.dodajJeloURezervaciju(
-                                  JeloRezervacijaModel(
-                                      widget.jelo.jeloId!,
-                                      odabranaRezervacija.rezervacijaId,
-                                      kolicina))
-                              .then((value) => {
-                                setDropdown(false),
-                                    ScaffoldMessenger.of(context)
-                                        .showSnackBar(const SnackBar(
-                                      backgroundColor: Colors.green,
-                                      duration: Duration(milliseconds: 1000),
-                                      content:
-                                          Text("Jelo dodano u rezervaciju"),
-                                    ))
-                                  })
+                          : odabranaRezervacija.rezervacijaId != 0
+                              ? await HttpService.dodajJeloURezervaciju(
+                                      JeloRezervacijaModel(
+                                          widget.jelo.jeloId!,
+                                          odabranaRezervacija.rezervacijaId,
+                                          kolicina))
+                                  .then((value) => {
+                                        setDropdown(false),
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(const SnackBar(
+                                          backgroundColor: Colors.green,
+                                          duration:
+                                              Duration(milliseconds: 1000),
+                                          content:
+                                              Text("Jelo dodano u rezervaciju"),
+                                        ))
+                                      })
+                              : ScaffoldMessenger.of(context)
+                                  .showSnackBar(const SnackBar(
+                                  backgroundColor: Colors.red,
+                                  duration: Duration(milliseconds: 1000),
+                                  content: Text("Morate odabrati rezervaciju"),
+                                ))
                     },
                     child: const Text(
                       "DODAJ U REZERVACIJU",
@@ -327,6 +354,114 @@ class _FoodDetailsState extends State<FoodDetails> {
                     ),
                   )
                 : Container(),
+            const SizedBox(
+              height: 30.0,
+            ),
+            const Text(
+              "Ukupan rejting",
+              style: TextStyle(
+                  color: ColorPallete.purple,
+                  fontFamily: "Avenir-Medium",
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18.0),
+            ),
+            const SizedBox(
+              height: 10.0,
+            ),
+            RatingBar(
+                initialRating: ukupanRejting!,
+                direction: Axis.horizontal,
+                allowHalfRating: true,
+                itemCount: 5,
+                ratingWidget: RatingWidget(
+                    full: const Icon(Icons.star, color: Colors.orange),
+                    half: const Icon(
+                      Icons.star_half,
+                      color: Colors.orange,
+                    ),
+                    empty: const Icon(
+                      Icons.star_outline,
+                      color: Colors.orange,
+                    )),
+                ignoreGestures: true,
+                onRatingUpdate: (value) {}),
+            const SizedBox(
+              height: 10.0,
+            ),
+            const Text(
+              "Vaš rejting",
+              style: TextStyle(
+                  color: ColorPallete.purple,
+                  fontFamily: "Avenir-Medium",
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18.0),
+            ),
+            const SizedBox(
+              height: 10.0,
+            ),
+            RatingBar(
+                initialRating: klijentovRejting!,
+                direction: Axis.horizontal,
+                allowHalfRating: true,
+                itemCount: 5,
+                ratingWidget: RatingWidget(
+                    full: const Icon(Icons.star, color: Colors.orange),
+                    half: const Icon(
+                      Icons.star_half,
+                      color: Colors.orange,
+                    ),
+                    empty: const Icon(
+                      Icons.star_outline,
+                      color: Colors.orange,
+                    )),
+                onRatingUpdate: (value) {
+                  setState(() {
+                    _ratingValue = value;
+                  });
+                }),
+            const SizedBox(
+              height: 30.0,
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                fixedSize: Size(MediaQuery.of(context).size.width - 60, 50),
+                primary: ColorPallete.purple,
+                onPrimary: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18.0),
+                ),
+              ),
+              onPressed: () async {
+                try {
+                  HttpService.dodajOcjenuZaJelo(
+                      _ratingValue, widget.jelo.jeloId);
+                  await getUkupanRejtingZaJelo();
+                  await getKlijentovRejtingZaJelo();
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                    backgroundColor: Colors.green,
+                    duration: Duration(milliseconds: 1000),
+                    content: Text("Uspješno ažuriran rejting"),
+                  ));
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                    backgroundColor: Colors.red,
+                    duration: Duration(milliseconds: 1000),
+                    content: Text("Greška prilikom ažuriranja rejtinga"),
+                  ));
+                }
+              },
+              child: const Text(
+                "Ažuriraj ocjenu",
+                style: TextStyle(
+                  fontFamily: 'Avenir-Medium',
+                  fontSize: 16.0,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            const SizedBox(
+              height: 50.0,
+            ),
           ],
         ),
       ),
@@ -335,7 +470,19 @@ class _FoodDetailsState extends State<FoodDetails> {
 
   setDropdown(bool value) {
     setState(() {
-      widget.dropdownShown=value;
+      widget.dropdownShown = value;
     });
+  }
+}
+
+
+Widget getFoodImage(JeloModel jelo) {
+  if (jelo.slika == null) {
+    return Image.asset("assets/images/placeholder_food.png", width: 300.0,);
+  } else {
+    return Image.memory(
+      base64Decode(jelo.slika!),
+      width: 300.0,
+    );
   }
 }
